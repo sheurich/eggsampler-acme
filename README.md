@@ -32,6 +32,46 @@ This code demonstrates account registration, new order submission, fulfilling ch
 
 An example of how to use the autocert package is also provided in examples/autocert.
 
+## DNS-Persist-01 Challenge Support
+
+This library implements the `dns-persist-01` ACME challenge method as specified in [draft-sheurich-acme-dns-persist](https://datatracker.ietf.org/doc/draft-sheurich-acme-dns-persist/). This challenge type allows you to provision a DNS TXT record once that can be reused for multiple certificate issuances, unlike `dns-01` which requires updating the record for each request.
+
+### Key Features
+
+- **Persistent DNS Records**: Set a TXT record once and reuse it for renewals and multiple certificates
+- **Account Binding**: Records are tied to your ACME account URL
+- **Wildcard Support**: Optional policy parameter for wildcard certificates
+- **Expiration Control**: Optional `persistUntil` timestamp to control record validity
+
+### Functions
+
+- `GetDNSPersist01Domain(domain string) string` - Returns the DNS name for the TXT record (`_validation-persist.{domain}`)
+- `EncodeDNSPersist01Record(issuerDomainName, accountURI, policy string, persistUntil int64) string` - Creates the TXT record value in RFC 8659 CAA issue-value syntax
+- `ParseDNSPersist01Record(record string) (DNSPersist01Record, error)` - Parses a TXT record value into its components
+- `Challenge.IssuerDomainNames []string` - List of valid issuer domain names from the CA (choose one for your TXT record)
+
+### TXT Record Format
+
+The TXT record follows RFC 8659 CAA issue-value syntax:
+
+```
+issuer-domain-name; accounturi=URI[; policy=wildcard][; persistUntil=timestamp]
+```
+
+Example:
+```
+ca.example.com; accounturi=https://acme.example.com/acct/123; policy=wildcard; persistUntil=1735689600
+```
+
+### Example Usage
+
+A complete example demonstrating dns-persist-01 usage is available in [examples/dns-persist-01/main.go](examples/dns-persist-01/main.go). The example shows how to:
+
+- Retrieve issuer domain names from the challenge
+- Generate the correct DNS record name and value
+- Handle both standard and wildcard certificates
+- Reuse records for multiple certificate requests
+
 ## Tests
 
 The tests can be run against an instance of [boulder](https://github.com/letsencrypt/boulder) or [pebble](https://github.com/letsencrypt/pebble).

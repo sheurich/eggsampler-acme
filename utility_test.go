@@ -438,6 +438,20 @@ func preChallenge(acct Account, auth Authorization, chal Challenge) {
 		}
 		doPost("set-txt", setReq)
 
+	case ChallengeTypeDNSPersist01:
+		policy := ""
+		if auth.Wildcard {
+			policy = "wildcard"
+		}
+		setReq := struct {
+			Host  string `json:"host"`
+			Value string `json:"value"`
+		}{
+			Host:  "_validation-persist." + auth.Identifier.Value + ".",
+			Value: EncodeDNSPersist01Record(chal.IssuerDomainNames[0], acct.URL, policy, 0),
+		}
+		doPost("set-txt", setReq)
+
 	case ChallengeTypeHTTP01:
 		addReq := struct {
 			Token   string `json:"token"`
@@ -479,6 +493,15 @@ func postChallenge(acct Account, auth Authorization, chal Challenge) {
 		acctLabel := strings.ToLower(base32.StdEncoding.EncodeToString(acctHash[0:10]))
 		host := "_" + acctLabel + "._acme-challenge." +
 			auth.Identifier.Value + "."
+		clearReq := struct {
+			Host string `json:"host"`
+		}{
+			Host: host,
+		}
+		doPost("clear-txt", clearReq)
+
+	case ChallengeTypeDNSPersist01:
+		host := "_validation-persist." + auth.Identifier.Value + "."
 		clearReq := struct {
 			Host string `json:"host"`
 		}{

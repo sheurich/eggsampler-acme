@@ -23,6 +23,7 @@ var (
 const (
 	ChallengeTypeDNS01        = "dns-01"
 	ChallengeTypeDNSAccount01 = "dns-account-01"
+	ChallengeTypeDNSPersist01 = "dns-persist-01"
 	ChallengeTypeHTTP01       = "http-01"
 	ChallengeTypeTLSALPN01    = "tls-alpn-01"
 
@@ -200,6 +201,9 @@ type Challenge struct {
 	// Based on the challenge used
 	Token            string `json:"token"`
 	KeyAuthorization string `json:"keyAuthorization"`
+
+	// dns-persist-01
+	IssuerDomainNames []string `json:"issuer-domain-names"`
 
 	// Authorization url provided by the rel="up" Link http header
 	AuthorizationURL string `json:"-"`
